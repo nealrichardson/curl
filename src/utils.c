@@ -7,7 +7,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-CURL *make_handle(const char *url){
+#include "exceptions.h"
+
+CURL* make_handle(const char *url){
   /* construct new handler */
   CURL *http_handle = curl_easy_init();
 
@@ -46,12 +48,12 @@ void stop_for_status(CURL *http_handle){
   assert(curl_easy_getinfo(http_handle, CURLINFO_RESPONSE_CODE, &status));
 
   /* check http status code. Not sure what this does for ftp. */
-  if(status >= 300)
-    error("HTTP error %d.", status);
+  if(status >= 300){
+    signal_http_exception((int) status);
+  }
 }
 
 SEXP R_global_cleanup() {
   curl_global_cleanup();
   return R_NilValue;
 }
-
