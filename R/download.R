@@ -29,7 +29,7 @@ curl_download <- function(url, destfile, quiet = TRUE, mode = "wb", handle = new
   tryCatch({
     # Clean in case of interrupt
     on.exit(.Call(R_download_cleanup))
-    invisible(.Call(R_download_curl, url, destfile, quiet, mode, handle))
+    invisible(.Call(R_download_curl, url, destfile, quiet, mode, parent.env(handle)$h))
   }, error = function(err){
     # Need to close descriptor before we can unlink
     if(isTRUE(newfile)){
