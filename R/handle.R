@@ -6,14 +6,30 @@
 #'
 #' @useDynLib curl R_new_handle
 #' @export
+#' @name handle
 #' @rdname handle
+#' @examples h <- new_handle()
+#' h$cookies()
+#'
+#' # Server sets cookies
+#' req <- curl_perform("http://httpbin.org/cookies/set?foo=123&bar=ftw", handle = h)
+#' h$cookies()
+#'
+#' # Server deletes cookies
+#' req <- curl_perform("http://httpbin.org/cookies/delete?foo", handle = h)
+#' h$cookies()
 new_handle <- function(){
-  .Call(R_new_handle)
+  h <- .Call(R_new_handle)
+  this <- local({
+    setopt <- function(...) handle_setopt(h, ...)
+    reset <- function(...) handle_reset(h, ...)
+    setheaders <- function(...) handle_setheaders(h, ...)
+    setform <- function(...) handle_setform(h, ...)
+    cookies <- function() get_handle_cookies(h)
+    environment()
+  })
 }
 
-#' @export
-#' @rdname handle
-#' @param ... additional options / headers to be set in the handle.
 #' @useDynLib curl R_handle_setopt
 handle_setopt <- function(handle, ...){
   values <- list(...)
@@ -25,16 +41,12 @@ handle_setopt <- function(handle, ...){
   .Call(R_handle_setopt, handle, keys, values)
 }
 
-#' @export
-#' @rdname handle
 #' @useDynLib curl R_handle_reset
 handle_reset <- function(handle){
   .Call(R_handle_reset, handle)
 }
 
-#' @export
 #' @useDynLib curl R_handle_setheaders
-#' @rdname handle
 handle_setheaders <- function(handle, ...){
   opts <- list(...)
   if(!all(vapply(opts, is.character, logical(1)))){
@@ -46,9 +58,7 @@ handle_setheaders <- function(handle, ...){
   .Call(R_handle_setheaders, handle, vec)
 }
 
-#' @export
 #' @useDynLib curl R_handle_setform
-#' @rdname handle
 handle_setform <- function(handle, ...){
   form <- list(...)
   for(i in seq_along(form)){
@@ -61,19 +71,6 @@ handle_setform <- function(handle, ...){
 }
 
 #' @useDynLib curl R_get_handle_cookies
-#' @export
-#' @rdname handle
-#' @param handle a curl handle object
-#' @examples h <- new_handle()
-#' get_handle_cookies(h)
-#'
-#' # Server sets cookies
-#' req <- curl_perform("http://httpbin.org/cookies/set?foo=123&bar=ftw", handle = h)
-#' get_handle_cookies(h)
-#'
-#' # Server deletes cookies
-#' req <- curl_perform("http://httpbin.org/cookies/delete?foo", handle = h)
-#' get_handle_cookies(h)
 get_handle_cookies <- function(handle){
   cookies <- .Call(R_get_handle_cookies, handle)
   df <- if(length(cookies)){
