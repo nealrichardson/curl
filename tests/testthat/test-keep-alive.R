@@ -20,7 +20,7 @@ if (suppressMessages(require(RCurl))) {
   req4 <- getURL("https://httpbin.org/get", curl=h2)
   log4 <- d$value()["text"]
 
-  test_that("RCurl keeps-alive", {
+  test_that("RCurl keeps alive", {
     expect_false(grepl("Re-using existing connection!", log3))
     expect_true(grepl("Re-using existing connection!", log4))
   })
